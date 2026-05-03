@@ -9,6 +9,7 @@ export interface MenuItem {
   image: string;
   rating?: number;
   reviews?: number;
+  allowExtraCheese?: boolean;
 }
 
 export type OrderStatus = 'PROCESSING' | 'NEW' | 'PREPARING' | 'READY' | 'DONE';
@@ -20,6 +21,7 @@ export interface OrderItem {
   name: string;
   price: number;
   quantity: number;
+  withExtraCheese?: boolean;
 }
 
 export interface Order {

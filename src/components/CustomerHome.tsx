@@ -1,19 +1,23 @@
 import React, { useState } from 'react';
-import { motion } from 'motion/react';
-import { Search, Plus, Star, Clock, MapPin, Banknote } from 'lucide-react';
-import { MenuItem, Category } from '../types';
+import { motion, AnimatePresence } from 'motion/react';
+import { Search, Plus, Minus, Star, Clock, MapPin, Banknote } from 'lucide-react';
+import { MenuItem, Category, OrderItem } from '../types';
 import { CATEGORIES } from '../constants';
 
 interface CustomerHomeProps {
   menu: MenuItem[];
   categories: string[];
   settings: any;
-  onAddToCart: (item: MenuItem) => void;
+  onAddToCart: (item: MenuItem, withExtraCheese?: boolean) => void;
+  onUpdateQuantity: (itemId: string, delta: number, withExtraCheese?: boolean) => void;
+  cart: OrderItem[];
 }
 
-export default function CustomerHome({ menu, categories, settings, onAddToCart }: CustomerHomeProps) {
+export default function CustomerHome({ menu, categories, settings, onAddToCart, onUpdateQuantity, cart }: CustomerHomeProps) {
   const [activeCategory, setActiveCategory] = useState<string>('All');
   const [searchQuery, setSearchQuery] = useState('');
+  const [customizingItem, setCustomizingItem] = useState<MenuItem | null>(null);
+  const [extraCheese, setExtraCheese] = useState(false);
 
   const filteredMenu = menu.filter(item => {
     const matchesCategory = activeCategory === 'All' || item.category === activeCategory;
@@ -143,17 +147,109 @@ export default function CustomerHome({ menu, categories, settings, onAddToCart }
               <div className="relative w-32 h-32 rounded-3xl overflow-hidden shadow-premium flex-shrink-0">
                 <img src={item.image} alt={item.name} className="w-full h-full object-cover group-hover:scale-110 transition-transform duration-700" />
                 <div className="absolute bottom-1 left-1 right-1">
-                   <button 
-                    onClick={(e) => { e.stopPropagation(); onAddToCart(item); }}
-                    className="w-full py-2 bg-white text-[#D97706] text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg border border-[#F2F1EF] hover:bg-[#D97706] hover:text-white transition-all transform active:scale-95"
-                   >
-                     Add +
-                   </button>
+                   {/* Quantity Selector Logic */}
+                   {(() => {
+                     const itemCount = cart.filter(i => i.menuItemId === item.id).reduce((acc, i) => acc + i.quantity, 0);
+                     
+                     if (itemCount > 0 && !item.allowExtraCheese) {
+                       return (
+                         <div className="flex items-center justify-between bg-[#1A1A1A] rounded-xl overflow-hidden shadow-lg border border-[#1A1A1A]">
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); onUpdateQuantity(item.id, -1, false); }}
+                              className="w-1/3 py-2 flex items-center justify-center text-[#D97706] hover:bg-white/10 transition-colors"
+                            >
+                              <Minus size={12} strokeWidth={3} />
+                            </button>
+                            <span className="text-[10px] font-black text-white">{itemCount}</span>
+                            <button 
+                              onClick={(e) => { e.stopPropagation(); onAddToCart(item, false); }}
+                              className="w-1/3 py-2 flex items-center justify-center text-[#D97706] hover:bg-white/10 transition-colors"
+                            >
+                              <Plus size={12} strokeWidth={3} />
+                            </button>
+                         </div>
+                       );
+                     }
+
+                     return (
+                       <button 
+                        onClick={(e) => { 
+                          e.stopPropagation(); 
+                          if (item.allowExtraCheese) {
+                            setCustomizingItem(item);
+                            setExtraCheese(false);
+                          } else {
+                            onAddToCart(item, false); 
+                          }
+                        }}
+                        className="w-full py-2 bg-white text-[#D97706] text-[10px] font-black uppercase tracking-widest rounded-xl shadow-lg border border-[#F2F1EF] hover:bg-[#D97706] hover:text-white transition-all transform active:scale-95 flex items-center justify-center gap-1"
+                       >
+                         {itemCount > 0 && item.allowExtraCheese ? `${itemCount} Added` : 'Add +'}
+                       </button>
+                     );
+                   })()}
                 </div>
               </div>
             </motion.div>
           ))}
         </div>
+
+        {/* Customization Modal */}
+        <AnimatePresence>
+          {customizingItem && (
+            <div className="fixed inset-0 z-[100] flex items-center justify-center p-6 bg-black/40 backdrop-blur-sm">
+              <motion.div 
+                initial={{ opacity: 0, scale: 0.9, y: 20 }}
+                animate={{ opacity: 1, scale: 1, y: 0 }}
+                exit={{ opacity: 0, scale: 0.9, y: 20 }}
+                className="bg-white w-full max-w-sm rounded-[2.5rem] overflow-hidden shadow-2xl border border-[#F2F1EF]"
+              >
+                <div className="relative h-48">
+                  <img src={customizingItem.image} className="w-full h-full object-cover" alt={customizingItem.name} />
+                  <div className="absolute inset-0 bg-gradient-to-t from-white via-white/20 to-transparent" />
+                  <button 
+                    onClick={() => setCustomizingItem(null)}
+                    className="absolute top-4 right-4 w-8 h-8 bg-white/20 backdrop-blur-md rounded-full flex items-center justify-center text-white hover:bg-white/40 transition-all font-black"
+                  >
+                    ×
+                  </button>
+                </div>
+                
+                <div className="p-8 space-y-6">
+                  <div className="space-y-1">
+                    <h3 className="text-2xl font-black italic tracking-tighter uppercase">{customizingItem.name}</h3>
+                    <p className="text-[10px] font-bold text-[#8B7E74] uppercase tracking-widest leading-relaxed">{customizingItem.description}</p>
+                  </div>
+
+                  <div className="bg-[#F8F7F4] p-5 rounded-2xl border border-[#F2F1EF] space-y-4">
+                    <div className="flex items-center justify-between">
+                       <div className="space-y-0.5">
+                          <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">Extra Cheese</p>
+                          <p className="text-[8px] font-bold text-[#8B7E74] uppercase">+ ₹30.00</p>
+                       </div>
+                       <div 
+                        onClick={() => setExtraCheese(!extraCheese)}
+                        className={`w-12 h-6 rounded-full transition-all cursor-pointer relative ${extraCheese ? 'bg-[#D97706]' : 'bg-[#E5E5E5]'}`}
+                       >
+                         <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${extraCheese ? 'left-7' : 'left-1'}`} />
+                       </div>
+                    </div>
+                  </div>
+
+                  <button 
+                    onClick={() => {
+                      onAddToCart(customizingItem, extraCheese);
+                      setCustomizingItem(null);
+                    }}
+                    className="w-full py-5 bg-[#1A1A1A] text-white rounded-2xl text-[10px] font-black uppercase tracking-[0.4em] hover:bg-[#D97706] transition-all shadow-xl active:scale-95"
+                  >
+                    Add to Cart • ₹{customizingItem.price + (extraCheese ? 30 : 0)}
+                  </button>
+                </div>
+              </motion.div>
+            </div>
+          )}
+        </AnimatePresence>
       </section>
     </div>
   );

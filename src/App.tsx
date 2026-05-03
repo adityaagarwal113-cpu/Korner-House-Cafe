@@ -42,23 +42,23 @@ export default function App() {
   const [activeOrderId, setActiveOrderId] = useState<string | null>(null);
   const [cart, setCart] = useState<OrderItem[]>([]);
 
-  const addToCart = (item: MenuItem) => {
+  const addToCart = (item: MenuItem, withExtraCheese: boolean = false) => {
     setCart(prev => {
-      const existing = prev.find(i => i.menuItemId === item.id);
+      const existing = prev.find(i => i.menuItemId === item.id && i.withExtraCheese === withExtraCheese);
       if (existing) {
-        return prev.map(i => i.menuItemId === item.id ? { ...i, quantity: i.quantity + 1 } : i);
+        return prev.map(i => (i.menuItemId === item.id && i.withExtraCheese === withExtraCheese) ? { ...i, quantity: i.quantity + 1 } : i);
       }
-      return [...prev, { menuItemId: item.id, name: item.name, price: item.price, quantity: 1 }];
+      return [...prev, { menuItemId: item.id, name: item.name, price: item.price, quantity: 1, withExtraCheese }];
     });
   };
 
-  const removeFromCart = (itemId: string) => {
-    setCart(prev => prev.filter(i => i.menuItemId !== itemId));
+  const removeFromCart = (itemId: string, withExtraCheese?: boolean) => {
+    setCart(prev => prev.filter(i => !(i.menuItemId === itemId && i.withExtraCheese === withExtraCheese)));
   };
 
-  const updateCartQuantity = (itemId: string, delta: number) => {
+  const updateCartQuantity = (itemId: string, delta: number, withExtraCheese?: boolean) => {
     setCart(prev => prev.map(i => {
-      if (i.menuItemId === itemId) {
+      if (i.menuItemId === itemId && i.withExtraCheese === withExtraCheese) {
         const newQty = Math.max(1, i.quantity + delta);
         return { ...i, quantity: newQty };
       }
@@ -67,12 +67,14 @@ export default function App() {
   };
 
   const placeOrder = (name: string, phone: string, deliveryType: any, paymentMethod: any, notes?: string) => {
+    const CHEESE_PRICE = 30;
+    const itemsTotal = cart.reduce((acc, i) => acc + (i.price + (i.withExtraCheese ? CHEESE_PRICE : 0)) * i.quantity, 0);
     const newOrder: Order = {
       id: Math.floor(100 + Math.random() * 900).toString(),
       customerName: name,
       phoneNumber: phone,
       items: cart,
-      total: cart.reduce((acc, i) => acc + (i.price * i.quantity), 0) + (deliveryType === 'Delivery' ? 40 : 0),
+      total: itemsTotal + (deliveryType === 'Delivery' ? 40 : 0),
       status: 'PROCESSING',
       createdAt: Date.now(),
       notes,
@@ -146,7 +148,14 @@ export default function App() {
             <main className="max-w-2xl mx-auto px-6 pb-32">
               {customerView === 'HOME' && (
                 <>
-                  <CustomerHome menu={menu} categories={categories} settings={settings} onAddToCart={addToCart} />
+                  <CustomerHome 
+                    menu={menu} 
+                    categories={categories} 
+                    settings={settings}
+                    cart={cart}
+                    onAddToCart={addToCart} 
+                    onUpdateQuantity={updateCartQuantity}
+                  />
                   {cart.length > 0 && (
                     <motion.div 
                       initial={{ y: 100 }}
@@ -160,7 +169,7 @@ export default function App() {
                          </div>
                          <div>
                             <p className="text-xs font-black uppercase tracking-widest leading-none mb-1">View Cart</p>
-                            <p className="text-[10px] font-bold opacity-80 leading-none">₹{cart.reduce((acc, i) => acc + (i.price * i.quantity), 0)} • PLUS TAXES</p>
+                            <p className="text-[10px] font-bold opacity-80 leading-none">₹{cart.reduce((acc, i) => acc + (i.price + (i.withExtraCheese ? 30 : 0)) * i.quantity, 0)} • PLUS TAXES</p>
                          </div>
                       </div>
                       <ChevronRight size={24} strokeWidth={3} />

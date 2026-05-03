@@ -7,8 +7,8 @@ interface CartProps {
   items: OrderItem[];
   onBack: () => void;
   onPlaceOrder: (name: string, phone: string, deliveryType: DeliveryType, paymentMethod: PaymentMethod, notes?: string) => void;
-  onUpdateQty: (itemId: string, delta: number) => void;
-  onRemove: (itemId: string) => void;
+  onUpdateQty: (itemId: string, delta: number, withExtraCheese?: boolean) => void;
+  onRemove: (itemId: string, withExtraCheese?: boolean) => void;
 }
 
 export default function Cart({ items, onBack, onPlaceOrder, onUpdateQty, onRemove }: CartProps) {
@@ -19,7 +19,8 @@ export default function Cart({ items, onBack, onPlaceOrder, onUpdateQty, onRemov
   const [paymentMethod, setPaymentMethod] = useState<PaymentMethod>('UPI');
   const [step, setStep] = useState<'ITEMS' | 'CHECKOUT'>('ITEMS');
 
-  const subtotal = items.reduce((acc, i) => acc + (i.price * i.quantity), 0);
+  const CHEESE_PRICE = 30;
+  const subtotal = items.reduce((acc, i) => acc + (i.price + (i.withExtraCheese ? CHEESE_PRICE : 0)) * i.quantity, 0);
   const tax = Math.round(subtotal * 0.05); // 5% GST
   const deliveryFee = deliveryType === 'Delivery' ? 40 : 0;
   const platformFee = 5;
@@ -58,10 +59,10 @@ export default function Cart({ items, onBack, onPlaceOrder, onUpdateQty, onRemov
         {step === 'ITEMS' ? (
           <>
             <div className="space-y-4">
-              {items.map((item) => (
+              {items.map((item, idx) => (
                 <motion.div 
                   layout
-                  key={item.menuItemId} 
+                  key={`${item.menuItemId}-${item.withExtraCheese}-${idx}`} 
                   className="flex items-center gap-4 bg-white p-4 rounded-3xl border border-[#F2F1EF] shadow-sm"
                 >
                   <div className="w-20 h-20 bg-[#F8F7F4] rounded-2xl flex-shrink-0 flex items-center justify-center font-serif font-black text-xl text-[#D97706]/20">
@@ -69,25 +70,28 @@ export default function Cart({ items, onBack, onPlaceOrder, onUpdateQty, onRemov
                   </div>
                   <div className="flex-1 space-y-1">
                     <h4 className="font-bold text-sm tracking-tight">{item.name}</h4>
-                    <p className="text-xs text-[#D97706] font-bold">₹{item.price}</p>
+                    {item.withExtraCheese && (
+                      <p className="text-[9px] font-black uppercase text-[#D97706] tracking-widest bg-[#D97706]/5 px-2 py-0.5 rounded-sm w-fit">Extra Cheese (+₹30)</p>
+                    )}
+                    <p className="text-xs text-[#1A1A1A] font-bold">₹{item.price + (item.withExtraCheese ? 30 : 0)}</p>
                   </div>
                   <div className="flex items-center gap-3 bg-[#F8F7F4] p-1 rounded-xl">
                     <button 
-                      onClick={() => onUpdateQty(item.menuItemId, -1)}
+                      onClick={() => onUpdateQty(item.menuItemId, -1, item.withExtraCheese)}
                       className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition-colors border border-transparent active:border-[#D97706]"
                     >
                       <Minus size={14} />
                     </button>
                     <span className="text-sm font-bold w-4 text-center">{item.quantity}</span>
                     <button 
-                      onClick={() => onUpdateQty(item.menuItemId, 1)}
+                      onClick={() => onUpdateQty(item.menuItemId, 1, item.withExtraCheese)}
                       className="w-8 h-8 flex items-center justify-center hover:bg-white rounded-lg transition-colors border border-transparent active:border-[#D97706]"
                     >
                       <Plus size={14} />
                     </button>
                   </div>
                   <button 
-                    onClick={() => onRemove(item.menuItemId)}
+                    onClick={() => onRemove(item.menuItemId, item.withExtraCheese)}
                     className="p-2 text-red-400 hover:bg-red-50 rounded-xl transition-colors"
                   >
                     <Trash2 size={18} />

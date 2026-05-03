@@ -9,7 +9,8 @@ export const INITIAL_MENU: MenuItem[] = [
     description: 'Korner House Special - Ultimate jumbo patty with secret sauce, fresh veggies, and molten cheese.',
     image: 'https://images.unsplash.com/photo-1568901346375-23c9450c58cd?q=80&w=800&auto=format&fit=crop',
     rating: 4.9,
-    reviews: 1200
+    reviews: 1200,
+    allowExtraCheese: true
   },
   {
     id: '2',
@@ -59,7 +60,8 @@ export const INITIAL_MENU: MenuItem[] = [
     description: 'Crispy golden fries tossed in our signature extra-hot peri peri seasoning.',
     image: 'https://images.unsplash.com/photo-1573080496219-bb080dd4f877?q=80&w=800&auto=format&fit=crop',
     rating: 4.8,
-    reviews: 2100
+    reviews: 2100,
+    allowExtraCheese: true
   },
   {
     id: '7',
@@ -89,7 +91,8 @@ export const INITIAL_MENU: MenuItem[] = [
     description: 'Classic Mumbai-style toasted sandwich filled with spiced potato and green chutney.',
     image: 'https://images.unsplash.com/photo-1528735602780-2552fd46c7af?q=80&w=800&auto=format&fit=crop',
     rating: 4.7,
-    reviews: 560
+    reviews: 560,
+    allowExtraCheese: true
   },
   {
     id: '10',

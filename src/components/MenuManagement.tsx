@@ -39,13 +39,15 @@ export default function MenuManagement({ menu, categories, onAdd, onRemove, onUp
         onUpdate({
           ...newItem,
           id: editingId,
+          allowExtraCheese: newItem.allowExtraCheese || false
         } as MenuItem);
       } else {
         onAdd({
           ...newItem,
           id: Date.now().toString(),
           rating: 5.0,
-          reviews: 0
+          reviews: 0,
+          allowExtraCheese: newItem.allowExtraCheese || false
         } as MenuItem);
       }
       setIsAdding(false);
@@ -55,7 +57,8 @@ export default function MenuManagement({ menu, categories, onAdd, onRemove, onUp
         price: 0, 
         name: '', 
         description: '',
-        image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?q=80&w=800&auto=format&fit=crop'
+        image: 'https://images.unsplash.com/photo-1572442388796-11668a67e53d?q=80&w=800&auto=format&fit=crop',
+        allowExtraCheese: false
       });
     }
   };
@@ -183,6 +186,18 @@ export default function MenuManagement({ menu, categories, onAdd, onRemove, onUp
                     </select>
                   </div>
                 </div>
+                <div className="flex items-center justify-between p-4 bg-[#F8F7F4] rounded-xl border border-[#F2F1EF]">
+                   <div className="space-y-0.5">
+                      <p className="text-[10px] font-black uppercase tracking-widest text-[#1A1A1A]">Extra Cheese Support</p>
+                      <p className="text-[8px] font-bold text-[#8B7E74] uppercase">Allow users to add cheese for +₹30</p>
+                   </div>
+                   <div 
+                    onClick={() => setNewItem({ ...newItem, allowExtraCheese: !newItem.allowExtraCheese })}
+                    className={`w-12 h-6 rounded-full transition-all cursor-pointer relative ${newItem.allowExtraCheese ? 'bg-[#D97706]' : 'bg-[#E5E5E5]'}`}
+                   >
+                     <div className={`absolute top-1 w-4 h-4 rounded-full bg-white transition-all ${newItem.allowExtraCheese ? 'left-7' : 'left-1'}`} />
+                   </div>
+                </div>
                 <div className="space-y-1">
                   <label className="text-[10px] font-bold uppercase tracking-widest text-[#8B7E74]">Product Photo</label>
                   <div 
@@ -284,7 +299,12 @@ export default function MenuManagement({ menu, categories, onAdd, onRemove, onUp
                   </div>
                 </div>
                 <h4 className="font-bold text-sm truncate">{item.name}</h4>
-                <p className="text-xs font-bold text-[#1A1A1A] mt-1">₹{item.price}</p>
+                <div className="flex items-center gap-2 mt-1">
+                  <p className="text-xs font-bold text-[#1A1A1A]">₹{item.price}</p>
+                  {item.allowExtraCheese && (
+                    <span className="text-[7px] font-black uppercase tracking-widest bg-yellow-100 text-yellow-700 px-1.5 py-0.5 rounded-sm">Cheese Opt.</span>
+                  )}
+                </div>
                 <div className="mt-auto flex items-center gap-2 text-[10px] text-[#8B7E74]">
                    Rating: {item.rating} • {item.reviews} reviews
                 </div>

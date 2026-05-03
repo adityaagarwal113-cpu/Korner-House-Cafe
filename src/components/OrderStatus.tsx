@@ -97,12 +97,17 @@ export default function OrderStatus({ order, onNewOrder }: OrderStatusProps) {
         <div className="p-6 space-y-4">
           <div className="space-y-3">
             {order.items.map((item, idx) => (
-              <div key={idx} className="flex justify-between items-center text-xs font-bold">
-                <div className="flex items-center gap-3">
-                  <span className="w-5 h-5 flex items-center justify-center bg-[#F8F7F4] rounded text-[10px] text-[#D97706]">{item.quantity}x</span>
-                  <span className="text-[#1A1A1A]">{item.name}</span>
+              <div key={idx} className="space-y-1">
+                <div className="flex justify-between items-center text-xs font-bold">
+                  <div className="flex items-center gap-3">
+                    <span className="w-5 h-5 flex items-center justify-center bg-[#F8F7F4] rounded text-[10px] text-[#D97706]">{item.quantity}x</span>
+                    <span className="text-[#1A1A1A]">{item.name}</span>
+                  </div>
+                  <span className="text-[#8B7E74]">₹{(item.price + (item.withExtraCheese ? 30 : 0)) * item.quantity}</span>
                 </div>
-                <span className="text-[#8B7E74]">₹{item.price * item.quantity}</span>
+                {item.withExtraCheese && (
+                  <p className="text-[8px] font-black uppercase text-[#D97706] tracking-[0.2em] ml-8">+ Extra Cheese</p>
+                )}
               </div>
             ))}
           </div>
@@ -112,7 +117,7 @@ export default function OrderStatus({ order, onNewOrder }: OrderStatusProps) {
           <div className="space-y-2">
             <div className="flex justify-between text-[10px] font-bold text-[#8B7E74]">
               <span>Item Subtotal</span>
-              <span>₹{order.items.reduce((acc, i) => acc + (i.price * i.quantity), 0)}</span>
+              <span>₹{order.items.reduce((acc, i) => acc + (i.price + (i.withExtraCheese ? 30 : 0)) * i.quantity, 0)}</span>
             </div>
             <div className="flex justify-between text-[10px] font-bold text-[#8B7E74]">
               <span>GST & Platform Charges</span>

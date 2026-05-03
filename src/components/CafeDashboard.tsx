@@ -70,9 +70,16 @@ export default function CafeDashboard({ orders, onUpdateStatus }: CafeDashboardP
 
                   <div className="bg-[#F8F7F4] rounded-2xl p-4 space-y-2 border border-[#F2F1EF]">
                     {order.items.map((item, idx) => (
-                      <div key={idx} className="flex justify-between text-xs font-bold">
-                        <span className="text-[#1A1A1A]/70">{item.quantity}x <span className="text-[#1A1A1A] uppercase italic">{item.name}</span></span>
-                        <span className="text-[#8B7E74]">₹{item.price * item.quantity}</span>
+                      <div key={idx} className="space-y-0.5">
+                        <div className="flex justify-between text-xs font-bold">
+                          <span className="text-[#1A1A1A]/70">{item.quantity}x <span className="text-[#1A1A1A] uppercase italic">{item.name}</span></span>
+                          <span className="text-[#8B7E74]">₹{(item.price + (item.withExtraCheese ? 30 : 0)) * item.quantity}</span>
+                        </div>
+                        {item.withExtraCheese && (
+                          <div className="text-[8px] font-black uppercase text-[#D97706] tracking-widest pl-5">
+                            + Extra Cheese
+                          </div>
+                        )}
                       </div>
                     ))}
                     {order.notes && (
